@@ -1,9 +1,9 @@
 - name: Create an ec2 instance
   ec2:
     key_name: "{{ keypair }}"
-    #key_name: Dhanesh #  Need to Change
-    aws_access_key: "AKIAJ2LXWXCAEXKFPCGA"  #  Need to Change
-    aws_secret_key: "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"  #  Need to Change
+    #key_name:  #  Need to Change
+    aws_access_key: ""  #  Need to Change
+    aws_secret_key: ""  #  Need to Change
    # group: launch-wizard-2  # security group name
     group: SG1  # security group name
     instance_type: "{{ instance_type}}"
