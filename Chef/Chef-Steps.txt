@@ -1,0 +1,145 @@
+manage.chef.io
+create chef account on this site
+
+Create 2 Redhat machines
+	1. Chef Agent
+	2. Chef Workstation
+
+login to chef account.
+
+go to Administration -> Select Organisation -> Starter kit -> Download Started kit.
+
+It will download the zip file. Extract zip file & copy it in Chef workstation using gitbash.
+
+scp -i /e/Dhanu/DevOps/Dhanesh_New.pem -r chef-repo/ ec2-user@13.233.62.138:/tmp
+
+Go to Chef workstation & copy chef-repo directory from /tmp to /opt
+
+/opt/chef-repo
+
+ls -la .chef/
+
+cat .chef/knife.rb
+
+knife client list -> knife is a tool which has a capability to talk with chef workstation & chef server 
+
+Go to Agent machines
+
+vi /etc/ssh/sshd_config
+	PermitRootLogin yes
+	PasswordAuthentication yes
+	#PasswordAuthentication no
+service sshd restart
+passwd
+
+Go to workstation
+
+knife bootstrap <Agent Private IP> --sudo -x <User Name> -P <Password> -N "node1"
+knife bootstrap 172.31.22.208 --sudo -x root -P 12345 -N "node1"				#To connect with Agent from Workstation
+
+Go to webbrowser & go to node tab
+
+Policy Writing:-
+
+cd /opt/chef-repo/cookbooks
+
+curl -s https://omnitruck.chef.io/install.sh | sudo bash -s -- -P chefdk
+
+chef generate cookbook apache
+
+yum install tree -yes
+
+cd apache/
+
+cd recipes/
+
+vi default.rb
+package "httpd" do
+  action :install
+end
+service "httpd" do
+  action [ :enable, :start ]
+end
+cookbook_file "/var/www/html/index.html" do
+  source "index.html"
+  mode "0644"
+end
+
+cd ..
+
+mkdir -p files/default && cd files/default
+
+vi index.html
+
+<html>
+<body>
+ <h1>Hello, world!</h1>
+</body>
+</html>
+
+cd ../../
+
+cd ..
+knife cookbook upload apache
+
+go to webbrowser & check in policy tab select policy & Check in content
+
+knife node run_list add node1 "recipe[apache]"
+
+go to webbrowser -> Node -> Edit Run list (Just check & cancel)
+
+Go to chef agent
+
+sevice httpd status
+
+chef-client
+
+go to browser & in url give public IP of agent & check
+
+Structure:-
+
+#/opt/chef-repo
+#cookbook
+#apache
+#	Recipe -> default.rb
+#	Files  -> default -> default.rb
+#	Attributes
+
+=================================================22/12/2018=================================================
+cd /opt/chef-repo/cookbook/apache
+mkdir attributes
+vi default.rb
+ default["apache"]["indexfile"] = "index1.html"
+
+ cd ..
+ 
+ cd files/default/
+ 
+ vi index1.html
+ <html>
+<body>
+<h1>Hello, world!</h1>
+<h2>This is index1.html</h2>
+<p>We configured this in the attributes file</p>
+</body>
+</html>
+
+cd ../../
+
+cd recipes/
+
+do changes here 
+cookbook_file "/var/www/html/index.html" do
+#  source "index.html"
+  source node["apache"]["indexfile"]
+  mode "0644"
+
+cd ..
+
+knife cookbook upload apache
+  
+Go to Chef Agent
+
+sudo chef-client
+
+Go to web browser & give public IP of Agent

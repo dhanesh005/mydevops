@@ -1,0 +1,70 @@
+Chef Project:-
+===================================================================================
+The Problem: We need to add a message that
+appears at login that states:
+• "This server is property of COMPANY"
+• "This server is in-scope for PCI compliance" if the server is, in fact, in scope.
+• Success Criteria: We see the message when we log in to the test node
+===================================================================================
+
+chef generate cookbook motd
+chef generate cookbook pci
+cd motd/
+ls -lrt
+mkdir attributes
+cd attributes/
+
+vi default.rb
+default["motd"]["company"] = "Chef"
+
+pwd
+cd ..
+ls -lrt
+cd recipes/
+
+vi default.rb
+template "/etc/motd" do
+source "motd.erb"
+mode "0644"
+end
+
+pwd
+cd ..
+ls -lrt
+mkdir -p templates/default && cd templates/default
+
+vi motd.erb
+This server is property of <%= node["motd"]["company"] %>
+<% if node["pci"]["in_scope"] -%>
+This server is in-scope for PCI compliance
+<% end -%>
+
+knife cookbook upload motd
+
+cd ../../../pci/
+ls -lrt
+mkdir attributes
+cd attributes/
+
+vi default.rb
+default["pci"]["in_scope"] = true
+
+knife cookbook upload pci
+
+Go to Agent
+
+chef-client
+
+it will fail becaus we have not declaired depend "pci" in metadata.rb file in motd cookbook.
+
+Go to Workstation
+
+vi motd/metadata.rb
+
+depend "pci"
+
+knife cookbook upload motd
+
+Go to Agent
+
+sudo chef-client

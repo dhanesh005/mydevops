@@ -1,0 +1,144 @@
+
+------------------------Influx DB-----------------------------
+--- This practical is on ubuntu machine.
+
+Download & Install Influx db
+wget http://influxdb.s3.amazonaws.com/influxdb_0.9.3_amd64.deb
+sudo dpkg -i influxdb_0.9.3_amd64.deb
+sudo /etc/init.d/influxdb start
+/opt/influxdb/influx -version
+http://localhost:8083
+
+numOrders,site="www.testsite.com",currency="GBP" value=15.50
+--------------------
+
+----------------Telegraf Installation
+
+wget http://get.influxdb.org/telegraf/telegraf_0.1.8_amd64.deb
+sudo dpkg -i telegraf_0.1.8_amd64.deb
+
+Craete telegraf db in influx
+
+curl -G http://localhost:8086/query --data-urlencode "q=CREATE DATABASE telegraf"
+
+to configure telegraf to log data on to the selected InfluxDB instance
+
+/etc/opt/telegraf/telegraf.conf
+
+sudo service telegraf start
+
+
+----------------------
+------------------Install Graphana-------------------
+
+wget https://grafanarel.s3.amazonaws.com/builds/grafana_2.1.3_amd64.deb
+
+--Graphan Prereq
+sudo apt-get install -y adduser libfontconfig
+
+---Install Grafana
+
+sudo dpkg -i grafana_2.1.3_amd64.deb
+
+----Start Grafana
+sudo service grafana-server start
+http://localhost:3000
+
+
+SHOW MEASUREMENTS
+
+--- 
+
+https://artofmonitoring.com/TheArtOfMonitoring_sample.pdf
+
+https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-elk-stack-on-centos-7
+
+filebeat -c /etc/filebeat/filebeat.yml -d "publish" -e
+
+
+++++++++++++++++++++++++++++++
+yum install /lib/ld-linux.so.2
+yum install wget
+
+wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "https://download.oracle.com/otn-pub/java/jdk/8u201-b09/42970487e3af4f5aa5bca3f542482c60/jdk-8u201-linux-i586.rpm"
+
+yum -y localinstall jdk-8u201-linux-i586.rpm
+
+---------------------------------- Install Nagios ubuntu machine--------------------
+apt-get install nagios3
+password :nagiosadmin
+http://PublicIP/nagios3
+
+
+----------------------------------
+https://www.tecmint.com/how-to-add-linux-host-to-nagios-monitoring-server/
+
+
+on Remote Machine
+
+apt-get install nagios-plugins nagios-nrpe-server nagios-nrpe-plugin
+
+vi /etc/nagios/nrpe_local.cfg
+
+allowed_hosts=127.0.0.1, 172.31.7.3
+command[check_load]=/usr/lib/nagios/plugins/check_load -w 15,20,5 -c 30,25,20
+command[check_all_disks]=/usr/lib/nagios/plugins/check_disk -w 10 -c 2
+command[check_apt]=/usr/lib/nagios/plugins/check_apt
+
+sudo service nagios-nrpe-server restart
+
+----------------------on Nagios server-----------------
+
+sudo apt-get install nagios-nrpe-plugin
+
+cd /etc/nagios3/conf.d
+
+Define remote host-to-nagios-monitoring-server/
+vi remote-linuxhost.cfg
+
+wget https://raw.githubusercontent.com/roybhaskar9/files/master/nrpelinuxhost.cfg
+
+sudo service nagios3 reload
+
+sudo service nagios3 status
+
+/usr/local/nagios/libexec/check_nrpe -H 172.31.7.3
+
+172.31.0.2
+
+--------#nslookup Script
+
+ --------------------Adding Additional NSLOOKUP check----------------------
+#nslookup Script
+Step1 
+vi /etc/nagios/nrpe_local.cfg
+>command[check_nslookup]=/usr/lib/nagios/plugins/nslookup.sh
+step2-created nslookup.sh
+vi /usr/lib/nagios/plugins/nslookup.sh
+	#!/bin/bash
+	
+	nslookup 172.31.7.3 > /tmp/nslookup.out
+	
+	if [[ $(grep '172.31.0.2' /tmp/nslookup.out) ]]
+	then
+		echo "all OK"
+		exit 0
+	else
+		#mutt -s "nslookup msisdn.sla-alacrity.com IP address changed" -a /tmp/nslookup.out gopal.mule@gmail.com <<EOF
+		echo "expected IP address:  PFA for actual output"
+		echo "Call L2"
+		EOF
+		exit 2
+	fi
+
+
+step3-go to nagios server
+
+vi nrpelinuxhost.cfg
+#CHECK FOR NSLOOKUP
+define service {
+use generic-service
+service_description check for nslookup
+check_command check_remote!check_nslookup
+host_name ubuntu_host
+}

@@ -1,0 +1,180 @@
+apiVersion: "v1"
+kind: Pod
+metadata:
+  name: redis
+  labels:
+    name: redis
+    app: demo
+spec:
+  containers:
+    - name: redis
+      image: redis:latest
+      ports:
+        - containerPort: 6379         
+          protocol: TCP
+          
+kubectl create -f redis.yml 
+kubectl get pods              
+kubectl create -f redis.yml 
+kubectl get pods      
+kubectl get pods -o wide
+kubectl describe pods redis
+kubectl delete pod redis
+kubectl exec -it redis /bin/bash
+
+
+
+
+
+  containers:
+    - name: redis
+      image: redis:latest
+      ports:
+        - containerPort: 6379         
+          protocol: TCP
+
+kubectl create -f redis.yml 
+kubectl get pods      
+kubectl get pods -o wide
+kubectl describe pods redis
+kubectl delete pod redis
+kubectl exec -it redis /bin/bash
+         
+ kubectl get pods --export=true -o json
+ 
+ https://stackoverflow.com/questions/36306904/configure-kubectl-command-to-access-remote-kubernetes-cluster-on-azure
+ 
+ 
+ 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-first-pod
+spec:
+  containers:
+  - name: my-nginx
+    image: nginx
+  - name: my-centos
+    image: centos
+    command: ["/bin/sh", "-c", "while : ;do curl http://localhost:80/; sleep 3; done"]
+ 
+ 
+ my-first-pod.yml
+
+
+
+kubectl get pods
+kubectl get pods
+kubectl logs my-first-pod -c my-centos --tail=30 
+kubectl exec -it  my-first-pod -c my-nginx /bin/bash
+
+
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: nginx
+spec:
+  replicas: 3
+  selector:
+    app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+        
+        
+kubectl create -f nginx-rc.yml  --- Creating pod
+kubectl get rc
+kubectl get pods -o wide
+
+
+// Create a pod, and add labels to it for the selector of service.
+kubectl run nginx-pod --image=nginx --port=80 --restart="Never" --labels="app=nginx"
+
+
+//Create service for the same
+kubectl expose pod nginx-pod --port=8000 --target-port=80 --name="service-pod" --external-ip="<USER_SPECIFIED_IP>"
+
+//to validate
+kubectl get svc service-pod
+http://collabedit.com/
+---------Node Port-----------------
+kubectl expose rc nginx --name=service-nodeport --type="NodePort"
+service "service-nodeport" exposed
+
+
+
+kubectl get svc
+
+kubectl desrible svc service-nodeport
+
+
+nestat -tulpn | grep 
+
+
+----------------Kubernetes Volume--------------------
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu
+spec:
+  containers:
+    -
+      image: ubuntu
+      command:
+        - sleep
+        - "3600"
+      imagePullPolicy: IfNotPresent
+      name: ubuntu
+      volumeMounts:
+        - mountPath: /data-mount
+          name: data
+  volumes:
+    - name: data
+      hostPath:
+        path: /target/path/on/host
+        
+        
+        
+--------------NFS Syntax
+
+// configuration file of nfs volume
+# cat nfs.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nfs
+spec:
+  containers:
+    -
+      name: nfs
+      image: ubuntu
+      volumeMounts:
+          - name: nfs
+            mountPath: "/data-mount"
+  volumes:
+  - name: nfs-it
+    nfs:
+      server: <your nfs server>
+      path: "/"
+      
+ kubectl describe pod <Pod name> | grep Node
+ docker inspect <container ID>
+ 
+ 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+ 
+     kubectl exec -it ubuntu /bin/bash
+     kubectl get pod ubuntu -o wide
+     
+ https://kubernetes.io/docs/tutorials/stateful-application/cassandra/

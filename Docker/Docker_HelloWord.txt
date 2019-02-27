@@ -1,0 +1,93 @@
+Create 2 Sessions
+
+docker run -i -t fedora /bin/bash
+yum install httpd
+
+Go to second session
+
+take container IDusing
+docker ps -a
+
+docker commit -a "Swami" -m "Fedora with HTTPD package" 1066ae820bcb mk/fedora:httpd --> For creating snapshot of curent running container
+
+docker run -i -t mk/fedora:httpd
+
+
+--------------------------------------------------------------------------------------------------------
+
+mkdir dockerdemo/flaskdemo
+cd dockerdemo/flaskdemo
+
+vi Dockerfile
+	FROM python:2.7
+	COPY . /app
+	WORKDIR /app
+	RUN pip install -r requirements.txt
+	EXPOSE 5000
+	CMD [ "python", "app.py" ]
+
+vi app.py
+from flask import Flask
+	app = Flask(__name__)
+	
+	@app.route("/")
+	def hello():
+		return "Hello World!"
+	
+	if __name__ == "__main__":
+		app.run()
+		
+vi requirements.txt
+Flask
+
+docker build . -t pythondemo:latest --> For Creating an image of flask demo diretory
+
+docker run --name test-python -d <ImageId> --> For creating container
+docker images --> checking image ID
+
+docker exec -it <container_id> /bin/bash --> it goes inside container
+docker ps -a --> checking container_id
+
+curl localhost:5000 --> For checking above container is running or not
+
+---------------------------------For connecting to outside network----------------------
+
+
+----------------Nginxdemo----------------------------------
+ctrl+d 
+cd ../..
+mkdir nginxdemo
+cd nginxdemo
+vi Dockerfile
+
+	FROM fedora
+	MAINTAINER scollier <scollier@redhat.com>
+	
+	RUN yum -y update && yum clean all
+	RUN yum -y install nginx && yum clean all
+	RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+	RUN echo "nginx on Fedora" > /usr/share/nginx/html/index.html
+	
+	EXPOSE 80
+	
+	CMD [ "/usr/sbin/nginx" ]
+
+docker build . -t customnginx:latest
+
+docker run -d -p 8001:80 --name test customnginx:latest
+
+docker exec -it container_id /bin/bash
+
+--------------------------------------------------------------
+
+docker network ls
+bridge help
+apt-get brctl
+apt-get install brctl
+brctl show
+apt install bridge-utils
+brctl show
+docker ps
+docker inspect cdebc9ca0911
+docker info
+ip a

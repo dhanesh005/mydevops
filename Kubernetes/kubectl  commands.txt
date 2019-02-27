@@ -1,0 +1,153 @@
+---Kubectl Commands--------------------
+vi redis.yml
+
+apiVersion: "v1"
+kind: Pod
+metadata:
+  name: redis
+  labels:
+    name: redis
+    app: demo
+spec:
+  containers:
+    - name: redis
+      image: redis:latest
+      ports:
+        - containerPort: 6379         
+          protocol: TCP
+          
+kubectl create -f redis.yml
+kubectl get pods              
+kubectl get pods -o wide
+kubectl describe pods redis
+kubectl exec -it redis /bin/bash
+kubectl delete pod redis
+
+
+----------------------
+vi first_pod.yml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-first-pod
+spec:
+  containers:
+  - name: my-nginx
+    image: nginx
+  - name: my-centos
+    image: centos
+    command: ["/bin/sh", "-c", "while : ;do curl http://localhost:80/; sleep 3; done"]
+
+kubectl create -f first_pod.yml
+kubectl get pods              
+kubectl get pods -o wide
+kubectl describe pods my-first-pod
+kubectl exec -it my-first-pod /bin/bash
+kubectl exec -it my-first-pod -c my-centos /bin/bash -> Go inside my-centos  container
+kubectl delete pod my-first-pod
+
+---------------------Creating Replication Controller---------------------------
+vi nginx-rc.yml
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: nginx
+spec:
+  replicas: 3
+  selector:
+    app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+        
+        
+kubectl create -f nginx-rc.yml  --- Creating pod
+kubectl get rc
+kubectl get pods -o wide
+kubectl get rc
+kubectl delete rc nginx
+
+-----------------Node-Port Service----------------------
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nodehelloworld.example.com
+  labels:
+    app: helloworld
+spec:
+  containers:
+  - name: k8s-demo
+    image: wardviaene/k8s-demo
+    ports:
+    - name: nodejs-port
+      containerPort: 3000
+      
+
+helloworld.yml
+kubectl create -f helloworld.yml
+
+
+----Service------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: helloworld-service
+spec:
+  ports:
+  - port: 31001
+    nodePort: 31001
+    targetPort: nodejs-port
+    protocol: TCP
+  selector:
+    app: helloworld
+  type: NodePort
+
+kubectl get pods -o wide  
+kubectl get svc
+kubectl describe service helloworld-service
+kubectl get pods nodehelloworld.example.com -o wide
+kubectl delete service helloworld-service
+kubectl delete pod nodehelloworld.example.com
+
+Delete Service and Pods
+
+
+-----------Deployment-----------------
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: helloworld-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+      - name: k8s-demo
+        image: wardviaene/k8s-demo
+        ports:
+        - name: nodejs-port
+          containerPort: 3000
+          
+kubectl create -f helloworld.yml
+kubectl get deployments
+kubectl get rs
+kubectl get pods
+kubectl get pods --show-labels
+kubectl rollout status deployment/helloworld-deployment
+
+kubectl set image deployment/helloworld-deployment k8s-demo=wardviaene/k8s-demo:2  -->> for Upgradation
+watch kubectl get pods
